@@ -4,14 +4,61 @@ import pyaudio
 import wave
 import threading
 import numpy as np
+import scipy.io.wavfile
+
 
 currentThreads = []
 playing = False
 
 
+
+def matplobLib():
+    samplerate, data = scipy.io.wavfile.read("africa-toto.wav", mmap=False )
+
+    print(len(data))
+    listHalf = data[:len(data)//2]
+    listHalfHalf = data[:len(listHalf)//2]
+
+    emptyarray = []
+
+    for i in listHalfHalf:
+        emptyarray.append(i/2)
+
+    emptyarray=np.array(emptyarray)
+
+    plt.figure(1)
+    plt.title("Graph for .wav file")
+    plt.plot(data)
+    plt.plot(listHalf)
+    plt.plot(listHalfHalf)
+    plt.plot(emptyarray)
+
+    scipy.io.wavfile.write("testing-africa.wav",samplerate,emptyarray.astype(np.dtype('i2')))
+    plt.show()
+
+
+def displayGUI():
+    applicationW = tk.Tk()
+    applicationW.title("Audio Processing Mini-project - Lukas Kristensen")
+    applicationW.wm_minsize(1000, 500)
+
+    testLabel = tk.Label(text="Audio Processing Mini-project 2021 spring")
+    playAudio = tk.Button(text="Play original .wav file", width="50", height="10", bg="gray", fg="black")
+    stopAudio = tk.Button(text="Stop .wav original", width="50", height="10", bg="gray", fg="black")
+    playAudio.bind("<Button-1>", threadStart)
+    stopAudio.bind("<Button-1>", threadStop)
+
+    testLabel.pack()
+    playAudio.pack()
+    stopAudio.pack()
+    applicationW.mainloop()
+
+
 def playWav():
-    print("Hello Audio!")
-    wavRead = wave.open("africa-toto.wav", "rb")
+    fileName = "africa-toto.wav"
+    wavRead = wave.open(fileName, "rb")
+    print("Status: Currently playing",fileName)
+
     pyA = pyaudio.PyAudio()
 
     frameRate = wavRead.getframerate()
@@ -35,20 +82,10 @@ def threadStart(event):
 def threadStop(event):
     if len(currentThreads) != 0:
         currentThreads.pop(len(currentThreads) - 1)
+        print("Status: Stopped. Total threads -",len(currentThreads))
 
 
-applicationW = tk.Tk()
-applicationW.title("Audio Processing Mini-project - Lukas Kristensen")
-applicationW.wm_minsize(1000, 500)
+tkinterGUIthread = threading.Thread(target=displayGUI)
+tkinterGUIthread.start()
+matplobLib()
 
-testLabel = tk.Label(text="Hello AP Mini Project")
-playAudio = tk.Button(text="Play original .wav file", width="50", height="10", bg="gray", fg="black")
-stopAudio = tk.Button(text="Stop .wav original", width="50", height="10", bg="gray", fg="black")
-playAudio.bind("<Button-1>", threadStart)
-stopAudio.bind("<Button-1>", threadStop)
-
-testLabel.pack()
-playAudio.pack()
-stopAudio.pack()
-
-applicationW.mainloop()
