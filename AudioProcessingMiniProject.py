@@ -6,8 +6,10 @@ import threading
 import numpy as np
 from numpy import random
 import scipy.io.wavfile
+import audioFilters
 
 defaultValues = [["0.10","0.12","0.14","0.16"],["0.2","0.22","0.24","0.26"],["0.30","0.32","0.34","0.36"],["0.40","0.42","0.44","0.46"]]
+
 currentThreads = []
 
 mixingGUI = []
@@ -65,14 +67,23 @@ def standardPresetOne():
         allPassGUI[i].set(defaultValues[3][i])
 
 def getValues():
-    storedVals=[[],[],[],[]]
+    storedVals = [[], [], [], []]
 
     for i in range(len(mixingGUI)):
         storedVals[0].append(mixingGUI[i].get())
         storedVals[1].append(plainReverbAmpGUI[i].get())
         storedVals[2].append(plainReverbGUI[i].get())
         storedVals[3].append(allPassGUI[i].get())
-    print(storedVals)
+    return storedVals
+
+
+def processAudioPass():
+    valueParameters = getValues()
+
+    audioProcessor = audioFilters
+    processedAudio = audioProcessor.schroedersReverb(valueParameters)
+
+    return processedAudio
 
 
 def displayGUI():
@@ -90,7 +101,7 @@ def displayGUI():
 
     playAudio = tk.Button(text="Play original .wav file", width="20", height="5", bg=bgC, fg="black", command=threadStart)
     stopAudio = tk.Button(text="Stop .wav original", width="20", height="5", bg=bgC, fg="black", command=threadStop)
-    processAudio = tk.Button(text="Start Processing", width="20", height="5", bg=bgC, fg="black", command="")
+    processAudio = tk.Button(text="Start Processing", width="20", height="5", bg=bgC, fg="black", command=processAudioPass)
     playNewAudio = tk.Button(text="Play new .wav file", width="20", height="5", bg=bgC, fg="black",command="")
     stopNewAudioAudio = tk.Button(text="Stop new .wav original", width="20", height="5", bg=bgC, fg="black", command="")
 
