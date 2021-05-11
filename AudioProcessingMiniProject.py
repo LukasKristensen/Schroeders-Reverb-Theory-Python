@@ -25,7 +25,7 @@ allPassGUI = []
 allPassLABEL = []
 
 playing = False
-
+soundfileInfo = []
 
 
 def matplobLib():
@@ -80,8 +80,8 @@ def getValues():
 def processAudioPass():
     valueParameters = getValues()
 
-    audioProcessor = audioFilters
-    processedAudio = audioProcessor.schroedersReverb(valueParameters)
+    print("pass0")
+    processedAudio = audioFilters.schroedersReverb(soundfileInfo[0], valueParameters, soundfileInfo[1])
 
     return processedAudio
 
@@ -200,6 +200,7 @@ def playWav():
     pyA = pyaudio.PyAudio()
 
     frameRate = wavRead.getframerate()
+    print("frameRate:",frameRate)
 
     audioStream = pyA.open(format=pyA.get_format_from_width(wavRead.getsampwidth()),
                            channels=wavRead.getnchannels(),
@@ -222,6 +223,14 @@ def threadStop():
         currentThreads.pop(len(currentThreads) - 1)
         print("Status: Stopped. Total threads -", len(currentThreads))
 
+
+fileName = "africa-toto.wav"
+wavRead = wave.open(fileName, "rb")
+
+frameRate = wavRead.getframerate()
+
+soundfileInfo.append(wavRead)
+soundfileInfo.append(frameRate)
 
 tkinterGUIthread = threading.Thread(target=displayGUI)
 tkinterGUIthread.start()
