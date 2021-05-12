@@ -80,9 +80,9 @@ def getValues():
 def processAudioPass():
     valueParameters = getValues()
 
-    print("pass0")
     processedAudio = audioFilters.schroedersReverb(soundfileInfo[0], valueParameters, soundfileInfo[1])
 
+    scipy.io.wavfile.write("DAY3-africa7.wav",soundfileInfo[1],processedAudio.astype(np.dtype('i2')))
     return processedAudio
 
 
@@ -229,8 +229,10 @@ wavRead = wave.open(fileName, "rb")
 
 frameRate = wavRead.getframerate()
 
-soundfileInfo.append(wavRead)
-soundfileInfo.append(frameRate)
+samplerate, data = scipy.io.wavfile.read("day3_testing_sample.wav", mmap=False)
+
+soundfileInfo.append(data)
+soundfileInfo.append(samplerate)
 
 tkinterGUIthread = threading.Thread(target=displayGUI)
 tkinterGUIthread.start()
