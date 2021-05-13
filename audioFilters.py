@@ -10,7 +10,7 @@ mixingParams = np.array([0.3, 0.25, 0.25, 0.2])
 plainReverbDelay = np.array([1553, 1613, 1493, 1153])
 allPassReverbDelay = np.array([223, 443])
 allPassParams = np.array([-0.7, -0.7])
-plainReverbTime = 0.7
+plainReverbTime = np.array([0.7])
 
 
 def gainFromReverb(inputSound, plainReverbDelay1, samplingFrequency):
@@ -51,6 +51,21 @@ def allPassReverb(data, allPassReverbDelayInput, allPassParamsInput):
 
 def schroedersReverb(soundFile, valueParameters, fileFrequency):
     print("Soundfile:",soundFile)
+    print("ParametersInput",valueParameters)
+
+    print("ValuesBefore:\n","mixingParams",mixingParams,"plainReverbDelay",plainReverbDelay,"allPassReverbDelay",allPassReverbDelay,"allPassParams",allPassParams,"plainReverbTime",plainReverbTime)
+    for i, data in enumerate(valueParameters[0]):
+        mixingParams[i] = data
+    for i, data in enumerate(valueParameters[1]):
+        plainReverbDelay[i] = data
+    for i, data in enumerate(valueParameters[2]):
+        allPassParams[i] = data
+    for i, data in enumerate(valueParameters[3]):
+        allPassReverbDelay[i] = data
+    for i, data in enumerate(valueParameters[4]):
+        plainReverbTime[i] = data
+
+    print("ValuesAfter:\n","mixingParams",mixingParams,"plainReverbDelay",plainReverbDelay,"allPassReverbDelay",allPassReverbDelay,"allPassParams",allPassParams,"plainReverbTime",plainReverbTime)
 
     plainGainTotal = []
     soundFileHolder = np.zeros(np.size(soundFile))
