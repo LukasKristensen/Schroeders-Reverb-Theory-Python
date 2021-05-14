@@ -1,24 +1,25 @@
 import numpy as np
-import scipy.io.wavfile
 
-# Structure of code
+# Structure of code for implementing schroeder's reverb is inspired from lecture 9 in the Audio Processing course by Mads Græsbøll Christensen
 
-# TODO: Lav pseudo kode her, som går over fundamentalt hvad funktionerne skal have
 # TODO: Kører koden parralelt ift. kodeflow?
 
+
+# TODO: Alle arrays kan konverteres over til en
+#Default values from lecture
 mixingParams = np.array([0.3, 0.25, 0.25, 0.2])
 plainReverbDelay = np.array([1553, 1613, 1493, 1153])
 allPassReverbDelay = np.array([223, 443])
 allPassParams = np.array([-0.7, -0.7])
-plainReverbTime = np.array([0.7])
+plainReverbTimeP = [0]
 
-
-def gainFromReverb(inputSound, plainReverbDelay1, samplingFrequency):
+# TODO kan optimeres uden funktion
+def gainFromReverb(samplingFrequency):
     inputSoundSize = np.size(plainReverbDelay)
     outputGain = np.zeros(inputSoundSize)
 
     for i in np.arange(inputSoundSize):
-        outputGain[i] = 10**(-3*plainReverbDelay[i]/(plainReverbTime*samplingFrequency))
+        outputGain[i] = 10**(-3*plainReverbDelay[i]/(plainReverbTimeP[0]*samplingFrequency))
 
     return outputGain
 
@@ -32,7 +33,6 @@ def plainReverb(data, delay, plainGainTotal):
             outputSound[i] = data[i]
         else:
             outputSound[i] = data[i]+plainGainTotal*outputSound[i-delay]
-
     return outputSound
 
 
@@ -41,7 +41,7 @@ def allPassReverb(data, allPassReverbDelayInput, allPassParamsInput):
     outputSound = np.zeros(soundDataSize)
 
     for i in np.arange(soundDataSize):
-        if i < int(allPassReverbDelayInput):
+        if i < allPassReverbDelayInput:
             outputSound[i] = data[i]
         else:
             outputSound[i] = allPassParamsInput*data[i]+data[i-allPassReverbDelayInput]-allPassParamsInput*outputSound[i-allPassReverbDelayInput]
@@ -53,7 +53,7 @@ def schroedersReverb(soundFile, valueParameters, fileFrequency):
     print("Soundfile:",soundFile)
     print("ParametersInput",valueParameters)
 
-    print("ValuesBefore:\n","mixingParams",mixingParams,"plainReverbDelay",plainReverbDelay,"allPassReverbDelay",allPassReverbDelay,"allPassParams",allPassParams,"plainReverbTime",plainReverbTime)
+    print("ValuesBefore:\n","mixingParams",mixingParams,"plainReverbDelay",plainReverbDelay,"allPassReverbDelay",allPassReverbDelay,"allPassParams",allPassParams,"plainReverbTime",plainReverbTimeP)
     for i, data in enumerate(valueParameters[0]):
         mixingParams[i] = data
     for i, data in enumerate(valueParameters[1]):
@@ -63,22 +63,18 @@ def schroedersReverb(soundFile, valueParameters, fileFrequency):
     for i, data in enumerate(valueParameters[3]):
         allPassReverbDelay[i] = data
     for i, data in enumerate(valueParameters[4]):
-        plainReverbTime[i] = data
+        plainReverbTimeP[0] = data
 
-    print("ValuesAfter:\n","mixingParams",mixingParams,"plainReverbDelay",plainReverbDelay,"allPassReverbDelay",allPassReverbDelay,"allPassParams",allPassParams,"plainReverbTime",plainReverbTime)
+    print("ValuesAfter:\n","mixingParams",mixingParams,"plainReverbDelay",plainReverbDelay,"allPassReverbDelay",allPassReverbDelay,"allPassParams",allPassParams,"plainReverbTime",plainReverbTimeP)
 
-    plainGainTotal = []
     soundFileHolder = np.zeros(np.size(soundFile))
 
-    for i in range (len(mixingParams)):
-        plainGainTotal.append(gainFromReverb(soundFile, int(plainReverbDelay[i]),fileFrequency))
+    plainGainTotal = gainFromReverb(fileFrequency)
 
     for i in range(np.size(plainReverbDelay)):
-        # print("passPlainGain",plainGainTotal)
-        # print("elementPassPlainGain",plainGainTotal[i])
-        soundFileHolder = soundFile+plainReverb(soundFile, plainReverbDelay[i], plainGainTotal[0][i])
+        soundFileHolder = soundFileHolder+mixingParams[i]*plainReverb(soundFile, plainReverbDelay[i], plainGainTotal[i])
 
-    for i in range(len(allPassReverbDelay)):
+    for i in range(np.size(allPassReverbDelay)):
         soundFileHolder = allPassReverb(soundFileHolder, allPassReverbDelay[i], allPassParams[i])
 
     print("SoundfileEnd:",soundFileHolder)

@@ -4,11 +4,12 @@ import pyaudio
 import wave
 import threading
 import numpy as np
-from numpy import random
+import time
 import scipy.io.wavfile
 import audioFilters
 
 defaultValues = [[0.3, 0.25, 0.25, 0.2], [1553, 1613, 1493, 1153], [223, 443], [-0.7, -0.7], [0.7]]
+hallPresetValues = [[0.6, 0.2, 0.1, 0.1], [9151, 4051, 1451, 1151], [970, 590], [-0.5, -0.5], [3.6]]
 
 currentThreadsInputPlay = []
 currentThreadsOutputPlay = []
@@ -34,30 +35,21 @@ soundfileInfo = []
 matplotAwait = [True]
 matplotData = []
 
+inputFile = ["lydtest2.wav"]
+outputFileLocation = ["sample_output3.wav"]
+
 
 def matplobLib():
-    samplerate, data = scipy.io.wavfile.read("africa-toto.wav", mmap=False)
-
-    print(len(data))
-    listHalf = data[:len(data) // 2]
-    listHalfHalf = data[:len(listHalf) // 2]
-
-    emptyarray = []
-
-    for i in listHalfHalf:
-        emptyarray.append(i / 2)
-
-    emptyarray = np.array(emptyarray)
 
     while matplotAwait[0]:
-        ""
+        time.sleep(0.1)
+
 
     plt.figure("Input and output comparison")
     plt.title("Graph for .wav file")
     plt.plot(matplotData[1])
     plt.plot(matplotData[0])
 
-    scipy.io.wavfile.write("testing-africa.wav", samplerate, emptyarray.astype(np.dtype('i2')))
     plt.show()
 
 
@@ -73,6 +65,17 @@ def standardPresetOne():
     for i, data in enumerate(defaultValues[4]):
         plainReverbAmpGUI[i].set(data)
 
+def hallEchoPreset():
+    for i, data in enumerate(hallPresetValues[0]):
+        mixingGUI[i].set(data)
+    for i, data in enumerate(hallPresetValues[1]):
+        plainReverbGUI[i].set(data)
+    for i, data in enumerate(hallPresetValues[2]):
+        allPassDelayGUI[i].set(data)
+    for i, data in enumerate(hallPresetValues[3]):
+        allPassParamGUI[i].set(data)
+    for i, data in enumerate(hallPresetValues[4]):
+        plainReverbAmpGUI[i].set(data)
 
 def getValues():
     storedVals = [[], [], [], [], []]
@@ -96,7 +99,7 @@ def processAudioPass():
     valueParameters = getValues()
 
     processedAudio = audioFilters.schroedersReverb(soundfileInfo[0], valueParameters, soundfileInfo[1])
-    scipy.io.wavfile.write("africa-toto-output.wav", soundfileInfo[1], processedAudio.astype(np.dtype('i2')))
+    scipy.io.wavfile.write(outputFileLocation[0], soundfileInfo[1], processedAudio.astype(np.dtype('i2')))
 
     matplotData.append(soundfileInfo[0])
     matplotData.append(processedAudio)
@@ -124,8 +127,8 @@ def displayGUI():
     playNewAudio = tk.Button(text="Play new .wav file", width="20", height="5", bg=bgC, fg="black", command=threadStartOutput)
     stopNewAudioAudio = tk.Button(text="Stop new .wav original", width="20", height="5", bg=bgC, fg="black", command=threadStopOutput)
 
-    standardPreset = tk.Button(text="Standard preset", width="20", height="5", bg=bgC, fg="black",
-                               command=standardPresetOne)
+    standardPreset = tk.Button(text="Standard preset", width="20", height="5", bg=bgC, fg="black", command=standardPresetOne)
+    hallPreset = tk.Button(text="Hall preset", width="20", height="5", bg=bgC, fg="black", command=hallEchoPreset)
     getValue = tk.Button(text="GetValues", width="20", height="5", bg=bgC, fg="black", command=getValues)
 
     mixingParamLabel1 = tk.Label(text="mixing1")
@@ -146,16 +149,16 @@ def displayGUI():
     reverbDelayLabel4 = tk.Label(text="reverbDelay4")
     plainReverbLABEL.extend([reverbDelayLabel1, reverbDelayLabel2, reverbDelayLabel3, reverbDelayLabel4])
 
-    reverbDelayScale1 = tk.Scale(from_=0, to=2000, digits=2, resolution=0.01, bg=bgC, fg="black", orient="horizontal")
-    reverbDelayScale2 = tk.Scale(from_=0, to=2000, digits=2, resolution=0.01, bg=bgC, fg="black", orient="horizontal")
-    reverbDelayScale3 = tk.Scale(from_=0, to=2000, digits=2, resolution=0.01, bg=bgC, fg="black", orient="horizontal")
-    reverbDelayScale4 = tk.Scale(from_=0, to=2000, digits=2, resolution=0.01, bg=bgC, fg="black", orient="horizontal")
+    reverbDelayScale1 = tk.Scale(from_=0, to=10000, digits=2, resolution=0.01, bg=bgC, fg="black", orient="horizontal")
+    reverbDelayScale2 = tk.Scale(from_=0, to=10000, digits=2, resolution=0.01, bg=bgC, fg="black", orient="horizontal")
+    reverbDelayScale3 = tk.Scale(from_=0, to=10000, digits=2, resolution=0.01, bg=bgC, fg="black", orient="horizontal")
+    reverbDelayScale4 = tk.Scale(from_=0, to=10000, digits=2, resolution=0.01, bg=bgC, fg="black", orient="horizontal")
     plainReverbGUI.extend([reverbDelayScale1, reverbDelayScale2, reverbDelayScale3, reverbDelayScale4])
 
     reverbTimeLabel1 = tk.Label(text="reverbTime")
     plainReverbAmpLABEL.extend([reverbTimeLabel1])
 
-    reverbTimeScale1 = tk.Scale(from_=0, to=0.99, digits=2, resolution=0.01, bg=bgC, fg="black", orient="horizontal")
+    reverbTimeScale1 = tk.Scale(from_=0, to=10, digits=4, resolution=0.01, bg=bgC, fg="black", orient="horizontal")
     plainReverbAmpGUI.extend([reverbTimeScale1])
 
     a5label = tk.Label(text="ReverbDelay1")
@@ -198,7 +201,8 @@ def displayGUI():
         allPassParamLABEL[i].grid(row=(i * 2) + 6, column=3, pady=0, sticky="N")
 
     standardPreset.grid(row=11, column=2, pady=40)
-    getValue.grid(row=11, column=3, pady=40)
+    hallPreset.grid(row=11, column=3, pady=40)
+    getValue.grid(row=11, column=4, pady=40)
 
     playAudio.grid(row=12, column=1, pady=40)
     stopAudio.grid(row=12, column=2, pady=40)
@@ -210,7 +214,7 @@ def displayGUI():
 
 
 def playOriginalWav():
-    fileName = "africa-toto.wav"
+    fileName = inputFile[0]
     wavRead = wave.open(fileName, "rb")
     print("Status: Currently playing", fileName)
 
@@ -230,7 +234,7 @@ def playOriginalWav():
 
 
 def playOutputWav():
-    fileName = "africa-toto-output.wav"
+    fileName = outputFileLocation[0]
     wavRead = wave.open(fileName, "rb")
     print("Status: Currently playing", fileName)
 
@@ -273,7 +277,7 @@ def threadStopOutput():
         print("Status: Stopped. Total threads -", len(currentThreadsOutputPlay))
 
 
-samplerate, data = scipy.io.wavfile.read("day3_testing_sample.wav", mmap=False)
+samplerate, data = scipy.io.wavfile.read(inputFile[0], mmap=False)
 
 soundfileInfo.append(data)
 soundfileInfo.append(samplerate)
